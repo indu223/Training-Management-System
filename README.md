@@ -98,6 +98,7 @@ location.reload();
 
 ## License
 
-© Discover Talent  
-Designed & Developed by **Vinod Walwante**
+© SmartStack
+Designed & Developed by **SmartStack**
+
 
