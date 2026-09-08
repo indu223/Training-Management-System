@@ -94,6 +94,26 @@
     .prog-wrap{display:flex;align-items:center;gap:8px;min-width:120px;}
     .prog-wrap .progress{flex:1;}
     .prog-wrap span{font-size:.78rem;white-space:nowrap;}
+    /* ── MATERIALS ── */
+    .mat-type-badge{font-size:.7rem;padding:2px 8px;border-radius:20px;font-weight:500;}
+    .mat-video{background:#fce4ec;color:#c62828;}
+    .mat-pdf{background:#fce8b2;color:#b06a00;}
+    .mat-quiz{background:#e8f0fe;color:#1a73e8;}
+    .mat-article{background:#e6f4ea;color:#1e7e34;}
+    .mat-assignment{background:#f3e5f5;color:#6a1b9a;}
+    .mat-other{background:#f4f6f9;color:#37474f;}
+    .module-row{border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:10px;background:#fff;transition:box-shadow .15s;}
+    .module-row:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);}
+    .module-row.completed{border-left:4px solid #198754;background:#f8fff9;}
+    .module-row .mod-title{font-weight:600;font-size:.9rem;color:var(--sidebar);}
+    .module-row .mod-desc{font-size:.8rem;color:var(--muted);margin-top:2px;}
+    .module-row .mod-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+    .mat-check{width:20px;height:20px;accent-color:#198754;cursor:pointer;flex-shrink:0;}
+    .mat-progress-bar{height:8px;border-radius:4px;background:#e3e6ea;overflow:hidden;margin-top:8px;}
+    .mat-progress-fill{height:100%;background:linear-gradient(90deg,#1a2c4e,#4e9af1);border-radius:4px;transition:width .4s;}
+    #mat-modal-tabs .nav-link{font-size:.85rem;}
+    .mat-empty{text-align:center;padding:32px 20px;color:var(--muted);}
+    .mat-empty i{font-size:2rem;display:block;margin-bottom:8px;opacity:.35;}
   </style>
 </head>
 <body>
@@ -243,6 +263,7 @@
                 <th>Capacity</th>
                 <th>Start Date</th>
                 <th>Status</th>
+                <th>Materials</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -624,6 +645,90 @@
   </div>
 </div>
 
+<!-- MATERIALS MODAL -->
+<div class="modal fade" id="materialsModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title mb-0" id="mat-modal-title">Course Materials</h5>
+          <div id="mat-modal-subtitle" style="font-size:.75rem;color:rgba(255,255,255,.65);margin-top:2px;"></div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs px-3 pt-2" id="mat-modal-tabs">
+          <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#mat-tab-modules"><i class="bi bi-list-ul me-1"></i>Modules</a></li>
+          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#mat-tab-add"><i class="bi bi-plus-circle me-1"></i>Add Module</a></li>
+        </ul>
+        <div class="tab-content p-3">
+
+          <!-- MODULES LIST TAB -->
+          <div class="tab-pane fade show active" id="mat-tab-modules">
+            <!-- Progress summary -->
+            <div class="d-flex align-items-center gap-3 mb-3 p-3 rounded" style="background:#f4f6f9;border:1px solid var(--border)">
+              <div style="flex:1">
+                <div class="d-flex justify-content-between mb-1">
+                  <span style="font-size:.85rem;font-weight:600">Overall Progress</span>
+                  <span id="mat-progress-text" style="font-size:.85rem;color:var(--muted)">0 / 0 completed</span>
+                </div>
+                <div class="mat-progress-bar"><div class="mat-progress-fill" id="mat-progress-fill" style="width:0%"></div></div>
+              </div>
+              <div id="mat-progress-pct" style="font-size:1.4rem;font-weight:700;color:var(--sidebar);min-width:48px;text-align:right">0%</div>
+            </div>
+            <!-- Modules list -->
+            <div id="mat-modules-list"></div>
+          </div>
+
+          <!-- ADD / EDIT MODULE TAB -->
+          <div class="tab-pane fade" id="mat-tab-add">
+            <form id="mat-form" novalidate>
+              <input type="hidden" id="mat-id"/>
+              <div class="row g-3">
+                <div class="col-md-8">
+                  <label class="form-label">Module Title <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="mat-title" required placeholder="e.g. Introduction to Excel"/>
+                  <div class="invalid-feedback">Title is required.</div>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Type</label>
+                  <select class="form-select" id="mat-type">
+                    <option>Video</option>
+                    <option>PDF</option>
+                    <option>Quiz</option>
+                    <option>Article</option>
+                    <option>Assignment</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Description</label>
+                  <textarea class="form-control" id="mat-desc" rows="2" placeholder="Brief description of this module…"></textarea>
+                </div>
+                <div class="col-md-9">
+                  <label class="form-label">Resource URL / Link</label>
+                  <input type="url" class="form-control" id="mat-url" placeholder="https://…"/>
+                  <div class="form-text">Paste a link to a video, PDF, quiz page, or any resource.</div>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Order</label>
+                  <input type="number" class="form-control" id="mat-order" min="1" value="1"/>
+                </div>
+                <div class="col-12 d-flex gap-2">
+                  <button type="button" class="btn btn-primary" id="btn-save-module"><i class="bi bi-check-lg me-1"></i>Save Module</button>
+                  <button type="button" class="btn btn-outline-secondary" id="btn-cancel-module">Cancel</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM DELETE MODAL -->
 <div class="modal fade" id="confirmModal" tabindex="-1">
   <div class="modal-dialog modal-sm">
@@ -652,7 +757,7 @@
 const Storage = {
   get(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } },
   set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
-  KEYS: { courses:'tms_courses', trainers:'tms_trainers', learners:'tms_learners', sessions:'tms_sessions' }
+  KEYS: { courses:'tms_courses', trainers:'tms_trainers', learners:'tms_learners', sessions:'tms_sessions', materials:'tms_materials', progress:'tms_progress' }
 };
 
 // ═══════════════════════════════════════════════════
@@ -874,8 +979,14 @@ const Courses = {
       tbody.innerHTML = `<tr><td colspan="10" class="empty-state"><i class="bi bi-book"></i>No courses found</td></tr>`;
       return;
     }
-    tbody.innerHTML = data.map((c,i) => `
-      <tr>
+    tbody.innerHTML = data.map((c,i) => {
+      const mods = Storage.get(Storage.KEYS.materials).filter(m => m.courseId === c.id);
+      const prog = Storage.get(Storage.KEYS.progress);
+      const done = mods.filter(m => prog.some(p => p.moduleId === m.id && p.completed)).length;
+      const matBadge = mods.length > 0
+        ? `<span class="badge" style="background:#e8f0fe;color:#1a73e8;font-weight:500">${done}/${mods.length}</span>`
+        : `<span class="text-muted" style="font-size:.78rem">None</span>`;
+      return `<tr>
         <td>${i+1}</td>
         <td>
           <div class="fw-semibold">${Utils.escHtml(c.name)}</div>
@@ -889,10 +1000,16 @@ const Courses = {
         <td>${Utils.fmtDate(c.start)}</td>
         <td>${Utils.statusBadge(c.status)}</td>
         <td>
+          <button class="btn btn-sm btn-outline-success py-0 px-2" title="Study Materials" onclick="Materials.open('${c.id}')">
+            <i class="bi bi-journal-bookmark"></i> ${matBadge}
+          </button>
+        </td>
+        <td>
           <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="Courses.openEdit('${c.id}')"><i class="bi bi-pencil"></i></button>
           <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="Courses.delete('${c.id}','${Utils.escHtml(c.name)}')"><i class="bi bi-trash"></i></button>
         </td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   },
   populateTrainerSelect(selected) {
     const trainers = Storage.get(Storage.KEYS.trainers);
@@ -1473,6 +1590,204 @@ const GlobalSearch = {
 };
 
 // ═══════════════════════════════════════════════════
+//  MATERIALS MODULE
+// ═══════════════════════════════════════════════════
+const Materials = {
+  modal: null,
+  currentCourseId: null,
+
+  init() {
+    this.modal = new bootstrap.Modal(document.getElementById('materialsModal'));
+    document.getElementById('btn-save-module').addEventListener('click', () => this.saveModule());
+    document.getElementById('btn-cancel-module').addEventListener('click', () => this.cancelEdit());
+  },
+
+  // Type icon + badge class
+  typeMeta(type) {
+    const map = {
+      Video:      {icon:'bi-play-btn-fill',    cls:'mat-video'},
+      PDF:        {icon:'bi-file-earmark-pdf', cls:'mat-pdf'},
+      Quiz:       {icon:'bi-patch-question',   cls:'mat-quiz'},
+      Article:    {icon:'bi-file-earmark-text',cls:'mat-article'},
+      Assignment: {icon:'bi-clipboard-check',  cls:'mat-assignment'},
+      Other:      {icon:'bi-box',              cls:'mat-other'},
+    };
+    return map[type] || map['Other'];
+  },
+
+  open(courseId) {
+    this.currentCourseId = courseId;
+    const course = Storage.get(Storage.KEYS.courses).find(c => c.id === courseId);
+    if (!course) return;
+    document.getElementById('mat-modal-title').textContent = course.name + ' — Study Materials';
+    document.getElementById('mat-modal-subtitle').textContent =
+      `${course.category||''} · ${course.duration||''} · ${course.mode||''}`;
+    // Reset add form
+    this.resetForm();
+    // Show modules tab
+    const modulesTab = document.querySelector('a[href="#mat-tab-modules"]');
+    if (modulesTab) bootstrap.Tab.getOrCreateInstance(modulesTab).show();
+    this.renderModules();
+    this.modal.show();
+  },
+
+  renderModules() {
+    const courseId = this.currentCourseId;
+    const allMods  = Storage.get(Storage.KEYS.materials).filter(m => m.courseId === courseId);
+    const prog     = Storage.get(Storage.KEYS.progress);
+    const sorted   = [...allMods].sort((a,b) => (a.order||0) - (b.order||0));
+    const total    = sorted.length;
+    const done     = sorted.filter(m => prog.some(p => p.moduleId === m.id && p.completed)).length;
+    const pct      = total > 0 ? Math.round((done/total)*100) : 0;
+
+    // Update progress bar
+    document.getElementById('mat-progress-text').textContent = `${done} / ${total} completed`;
+    document.getElementById('mat-progress-fill').style.width = pct + '%';
+    document.getElementById('mat-progress-pct').textContent  = pct + '%';
+
+    const container = document.getElementById('mat-modules-list');
+    if (total === 0) {
+      container.innerHTML = `<div class="mat-empty"><i class="bi bi-journal-plus"></i>No modules yet.<br/>Click <strong>Add Module</strong> tab to get started.</div>`;
+      return;
+    }
+
+    container.innerHTML = sorted.map(m => {
+      const meta      = this.typeMeta(m.type);
+      const completed = prog.some(p => p.moduleId === m.id && p.completed);
+      return `
+        <div class="module-row d-flex align-items-start gap-3 ${completed?'completed':''}" id="modrow-${m.id}">
+          <input type="checkbox" class="mat-check mt-1" ${completed?'checked':''} title="Mark complete"
+            onchange="Materials.toggleComplete('${m.id}',this.checked)"/>
+          <div style="flex:1;min-width:0">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="mod-title">${m.order}. ${Utils.escHtml(m.title)}</span>
+              <span class="mat-type-badge ${meta.cls}"><i class="bi ${meta.icon} me-1"></i>${m.type}</span>
+              ${completed ? `<span class="badge bg-success-subtle text-success" style="font-size:.68rem"><i class="bi bi-check-circle me-1"></i>Completed</span>` : ''}
+            </div>
+            ${m.desc ? `<div class="mod-desc">${Utils.escHtml(m.desc)}</div>` : ''}
+            ${m.url  ? `<a href="${Utils.escHtml(m.url)}" target="_blank" rel="noopener" class="d-inline-flex align-items-center gap-1 mt-1" style="font-size:.8rem;color:var(--accent)"><i class="bi bi-box-arrow-up-right"></i>Open Resource</a>` : ''}
+          </div>
+          <div class="mod-actions">
+            <button class="btn btn-sm btn-outline-primary py-0 px-2" title="Edit" onclick="Materials.editModule('${m.id}')"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-outline-danger py-0 px-2" title="Delete" onclick="Materials.deleteModule('${m.id}','${Utils.escHtml(m.title)}')"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>`;
+    }).join('');
+  },
+
+  toggleComplete(moduleId, checked) {
+    const prog = Storage.get(Storage.KEYS.progress);
+    const existing = prog.findIndex(p => p.moduleId === moduleId);
+    if (existing >= 0) {
+      prog[existing].completed = checked;
+    } else {
+      prog.push({ moduleId, completed: checked });
+    }
+    Storage.set(Storage.KEYS.progress, prog);
+    // Update learner progress for the course
+    this.syncLearnerProgress();
+    this.renderModules();
+    Courses.render();
+    Toast.show(checked ? 'Module marked as completed! 🎉' : 'Module marked as incomplete.', checked ? 'success' : 'info');
+  },
+
+  syncLearnerProgress() {
+    // For each learner, recalculate their progress based on completed modules for their assigned course
+    const learners  = Storage.get(Storage.KEYS.learners);
+    const materials = Storage.get(Storage.KEYS.materials);
+    const progress  = Storage.get(Storage.KEYS.progress);
+    const courses   = Storage.get(Storage.KEYS.courses);
+    let changed = false;
+    learners.forEach(l => {
+      if (!l.course) return;
+      const course = courses.find(c => c.name === l.course);
+      if (!course) return;
+      const mods = materials.filter(m => m.courseId === course.id);
+      if (mods.length === 0) return;
+      const done = mods.filter(m => progress.some(p => p.moduleId === m.id && p.completed)).length;
+      const pct  = Math.round((done / mods.length) * 100);
+      if (l.progress !== pct) { l.progress = pct; changed = true; }
+    });
+    if (changed) { Storage.set(Storage.KEYS.learners, learners); Dashboard.render(); }
+  },
+
+  saveModule() {
+    const titleEl = document.getElementById('mat-title');
+    titleEl.classList.remove('is-invalid');
+    if (!titleEl.value.trim()) { titleEl.classList.add('is-invalid'); Toast.show('Module title is required.','error'); return; }
+
+    const id = document.getElementById('mat-id').value;
+    const record = {
+      id:       id || Utils.uid(),
+      courseId: this.currentCourseId,
+      title:    titleEl.value.trim(),
+      type:     document.getElementById('mat-type').value,
+      desc:     document.getElementById('mat-desc').value.trim(),
+      url:      document.getElementById('mat-url').value.trim(),
+      order:    parseInt(document.getElementById('mat-order').value) || 1,
+    };
+
+    const all = Storage.get(Storage.KEYS.materials);
+    if (id) {
+      const idx = all.findIndex(m => m.id === id);
+      all[idx] = record;
+      Toast.show('Module updated.');
+    } else {
+      all.push(record);
+      Toast.show('Module added successfully.');
+    }
+    Storage.set(Storage.KEYS.materials, all);
+    this.resetForm();
+    // Switch back to modules tab
+    const modulesTab = document.querySelector('a[href="#mat-tab-modules"]');
+    if (modulesTab) bootstrap.Tab.getOrCreateInstance(modulesTab).show();
+    this.renderModules();
+    Courses.render();
+  },
+
+  editModule(id) {
+    const m = Storage.get(Storage.KEYS.materials).find(x => x.id === id);
+    if (!m) return;
+    document.getElementById('mat-id').value    = m.id;
+    document.getElementById('mat-title').value = m.title;
+    document.getElementById('mat-type').value  = m.type;
+    document.getElementById('mat-desc').value  = m.desc||'';
+    document.getElementById('mat-url').value   = m.url||'';
+    document.getElementById('mat-order').value = m.order||1;
+    // Switch to add tab
+    const addTab = document.querySelector('a[href="#mat-tab-add"]');
+    if (addTab) bootstrap.Tab.getOrCreateInstance(addTab).show();
+    document.getElementById('mat-title').focus();
+  },
+
+  deleteModule(id, title) {
+    confirmDelete(`Delete module "${title}"?`, () => {
+      const all = Storage.get(Storage.KEYS.materials).filter(m => m.id !== id);
+      Storage.set(Storage.KEYS.materials, all);
+      // Remove progress entries
+      const prog = Storage.get(Storage.KEYS.progress).filter(p => p.moduleId !== id);
+      Storage.set(Storage.KEYS.progress, prog);
+      this.renderModules();
+      Courses.render();
+      Toast.show('Module deleted.','info');
+    });
+  },
+
+  cancelEdit() {
+    this.resetForm();
+    const modulesTab = document.querySelector('a[href="#mat-tab-modules"]');
+    if (modulesTab) bootstrap.Tab.getOrCreateInstance(modulesTab).show();
+  },
+
+  resetForm() {
+    document.getElementById('mat-form').reset();
+    document.getElementById('mat-id').value = '';
+    document.getElementById('mat-order').value = (Storage.get(Storage.KEYS.materials).filter(m => m.courseId === this.currentCourseId).length + 1) || 1;
+    document.querySelectorAll('#mat-form .is-invalid').forEach(el => el.classList.remove('is-invalid'));
+  }
+};
+
+// ═══════════════════════════════════════════════════
 //  NAVIGATION
 // ═══════════════════════════════════════════════════
 function navigateTo(page) {
@@ -1498,6 +1813,7 @@ document.addEventListener('DOMContentLoaded', () => {
   Trainers.init();
   Learners.init();
   Sessions.init();
+  Materials.init();
   GlobalSearch.init();
   Dashboard.render();
 
