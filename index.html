@@ -866,10 +866,12 @@ function seedData() {
       {id:Utils.uid(),name:'James Brown',empid:'EMP010',email:'james.b@company.com',dept:'Sales',course:cName(5),progress:10,status:'Pending'},
     ]);
   }
-  // Re-seed materials if none have a url yet (migration for existing users)
-  const _existingMats = Storage.get(Storage.KEYS.materials);
-  if (_existingMats.length === 0 || !_existingMats.some(m => m.url)) {
+  // Force re-seed materials if data version is outdated
+  const _matVer = localStorage.getItem('tms_mat_version');
+  if (_matVer !== '2') {
     Storage.set(Storage.KEYS.materials, []);
+    Storage.set(Storage.KEYS.progress, []);
+    localStorage.setItem('tms_mat_version', '2');
   }
   if (Storage.get(Storage.KEYS.materials).length === 0) {
     const courses = Storage.get(Storage.KEYS.courses);
