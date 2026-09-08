@@ -257,7 +257,6 @@
                 <th>#</th>
                 <th>Course Name</th>
                 <th>Category</th>
-                <th>Trainer</th>
                 <th>Duration</th>
                 <th>Mode</th>
                 <th>Capacity</th>
@@ -993,7 +992,6 @@ const Courses = {
           <div class="text-muted" style="font-size:.76rem">${Utils.escHtml((c.desc||'').slice(0,60))}${(c.desc||'').length>60?'…':''}</div>
         </td>
         <td>${Utils.escHtml(c.category||'—')}</td>
-        <td>${Utils.escHtml(c.trainer||'—')}</td>
         <td>${Utils.escHtml(c.duration||'—')}</td>
         <td>${Utils.modeBadge(c.mode)}</td>
         <td>${c.capacity||'—'}</td>
