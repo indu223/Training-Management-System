@@ -866,6 +866,87 @@ function seedData() {
       {id:Utils.uid(),name:'James Brown',empid:'EMP010',email:'james.b@company.com',dept:'Sales',course:cName(5),progress:10,status:'Pending'},
     ]);
   }
+  // Re-seed materials if none have a url yet (migration for existing users)
+  const _existingMats = Storage.get(Storage.KEYS.materials);
+  if (_existingMats.length === 0 || !_existingMats.some(m => m.url)) {
+    Storage.set(Storage.KEYS.materials, []);
+  }
+  if (Storage.get(Storage.KEYS.materials).length === 0) {
+    const courses = Storage.get(Storage.KEYS.courses);
+    const cId = (i) => courses[i] ? courses[i].id : null;
+    const mats = [];
+    // ── Excel for Beginners ──
+    if (cId(0)) { [
+      {title:'Excel Basics – Interface & Navigation',      type:'Video',  order:1, desc:'Get familiar with the Excel ribbon, cells, rows and columns.',                              url:'https://www.youtube.com/watch?v=rwbho0CgEAI'},
+      {title:'Formulas & Functions for Beginners',        type:'Video',  order:2, desc:'SUM, AVERAGE, COUNT, MAX, MIN and how to use them.',                                        url:'https://www.youtube.com/watch?v=Jl0Qk63z2ZY'},
+      {title:'Formatting Cells, Tables & Styles',         type:'Video',  order:3, desc:'Number formats, borders, conditional formatting and table styles.',                         url:'https://www.youtube.com/watch?v=9NUjHBNWe9M'},
+      {title:'Creating Charts in Excel',                  type:'Video',  order:4, desc:'Bar, line and pie charts — insert, format and customise.',                                  url:'https://www.youtube.com/watch?v=DAU0qqh_I-A'},
+      {title:'Sorting & Filtering Data',                  type:'Video',  order:5, desc:'Sort by column, apply AutoFilter, and filter by value.',                                   url:'https://www.youtube.com/watch?v=iplnMqNwMig'},
+      {title:'Excel for Beginners – Full PDF Guide',      type:'PDF',    order:6, desc:'Comprehensive beginner reference covering all core topics.',                               url:'https://www.sqa.org.uk/e-learning/EDU07CD/story_content/external_files/An_Introduction_to_Spreadsheets.pdf'},
+    ].forEach(m => mats.push({id:Utils.uid(),courseId:cId(0),...m})); }
+    // ── Advanced Excel ──
+    if (cId(1)) { [
+      {title:'PivotTables – Complete Guide',              type:'Video',  order:1, desc:'Create, format and refresh PivotTables from scratch.',                                      url:'https://www.youtube.com/watch?v=9NUjHBNWe9M'},
+      {title:'VLOOKUP, HLOOKUP & XLOOKUP',               type:'Video',  order:2, desc:'Master lookup functions with real-world examples.',                                         url:'https://www.youtube.com/watch?v=d3BYVQ6xIE4'},
+      {title:'IF, SUMIF, COUNTIF & Nested IFs',          type:'Video',  order:3, desc:'Conditional logic functions explained step by step.',                                       url:'https://www.youtube.com/watch?v=gHMs6e3AFPU'},
+      {title:'Macros & VBA Introduction',                 type:'Video',  order:4, desc:'Record and run your first macro, intro to the VBA editor.',                                url:'https://www.youtube.com/watch?v=G05TrN7nt6k'},
+      {title:'Data Validation & Named Ranges',            type:'Article',order:5, desc:'Control user input with drop-downs, restrictions and named ranges.',                        url:'https://support.microsoft.com/en-us/office/apply-data-validation-to-cells-29fecbcc-d1b9-42c1-9d76-eff3ce5f7249'},
+      {title:'Advanced Excel – Microsoft Official PDF',  type:'PDF',    order:6, desc:'Official Microsoft guide to advanced Excel features.',                                     url:'https://download.microsoft.com/download/6/3/e/63e4b1b6-5098-4e4b-8b48-f8ccb1e3d396/ExcelFunctionsAndFormulas.pdf'},
+    ].forEach(m => mats.push({id:Utils.uid(),courseId:cId(1),...m})); }
+    // ── Power BI Fundamentals ──
+    if (cId(2)) { [
+      {title:'Power BI – Getting Started',                type:'Video',  order:1, desc:'Install Power BI Desktop and load your first dataset.',                                    url:'https://www.youtube.com/watch?v=AGrl-H87pRU'},
+      {title:'Building Your First Dashboard',             type:'Video',  order:2, desc:'Create visuals, slicers and a fully interactive dashboard.',                               url:'https://www.youtube.com/watch?v=yKTSLffVGbk'},
+      {title:'DAX Basics – Calculated Columns & Measures',type:'Video', order:3, desc:'Introduction to DAX language for Power BI calculations.',                                   url:'https://www.youtube.com/watch?v=QJw4HkagVWc'},
+      {title:'Data Modelling & Relationships',            type:'Video',  order:4, desc:'Connect multiple tables and create star schemas.',                                         url:'https://www.youtube.com/watch?v=MrLnibFTtbA'},
+      {title:'Power BI – Microsoft Guided Learning PDF', type:'PDF',    order:5, desc:'Official Microsoft Power BI learning guide.',                                              url:'https://download.microsoft.com/download/d/1/2/d12f6c5d-c7e8-470b-a59f-1f48df3fb4dd/PowerBI-GuidedLearning.pdf'},
+      {title:'Publishing & Sharing Reports',              type:'Article',order:6, desc:'Publish to Power BI Service and share with your team.',                                   url:'https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-publish-to-web'},
+    ].forEach(m => mats.push({id:Utils.uid(),courseId:cId(2),...m})); }
+    // ── Python Basics ──
+    if (cId(3)) { [
+      {title:'Python for Beginners – Full Course',        type:'Video',  order:1, desc:'Variables, data types, conditionals and loops in Python.',                                 url:'https://www.youtube.com/watch?v=eWRfhZUzrAc'},
+      {title:'Functions, Modules & Packages',             type:'Video',  order:2, desc:'Defining functions, importing modules and using pip.',                                     url:'https://www.youtube.com/watch?v=9Os0o3wzS_I'},
+      {title:'File Handling in Python',                   type:'Video',  order:3, desc:'Read, write and process text and CSV files.',                                              url:'https://www.youtube.com/watch?v=Uh2ebFW8OYM'},
+      {title:'Python Official Tutorial – PDF',            type:'PDF',    order:4, desc:'The official Python 3 documentation tutorial.',                                           url:'https://docs.python.org/3/archives/python-3.12.0-docs-pdf-a4.zip'},
+      {title:'Python Cheat Sheet',                        type:'PDF',    order:5, desc:'Quick reference for syntax, built-ins and common patterns.',                              url:'https://perso.limsi.fr/pointal/_media/python:cours:mementopython3-english.pdf'},
+      {title:'Practice: 30 Python Exercises',             type:'Assignment',order:6,desc:'Complete 30 beginner Python exercises to test your knowledge.',                         url:'https://www.w3schools.com/python/exercise.asp'},
+    ].forEach(m => mats.push({id:Utils.uid(),courseId:cId(3),...m})); }
+    // ── AI with IBM watsonx ──
+    if (cId(4)) { [
+      {title:'Introduction to IBM watsonx',               type:'Video',  order:1, desc:'Overview of the IBM watsonx platform and its AI capabilities.',                            url:'https://www.youtube.com/watch?v=f1F9iEhqEio'},
+      {title:'Prompt Engineering Fundamentals',           type:'Video',  order:2, desc:'How to write effective prompts for large language models.',                                url:'https://www.youtube.com/watch?v=_ZvnD73m40o'},
+      {title:'watsonx.ai – Building AI Applications',     type:'Video',  order:3, desc:'Hands-on demo: build and deploy an AI solution with watsonx.ai.',                        url:'https://www.youtube.com/watch?v=Vp9az0UpJrw'},
+      {title:'IBM AI Foundations – Official PDF',         type:'PDF',    order:4, desc:'IBM official guide covering AI foundations and watsonx concepts.',                        url:'https://www.ibm.com/downloads/cas/GVAGA3JP'},
+      {title:'Responsible AI with IBM',                   type:'Article',order:5, desc:'IBM guidelines on ethics, bias, and responsible AI deployment.',                          url:'https://www.ibm.com/topics/ai-ethics'},
+    ].forEach(m => mats.push({id:Utils.uid(),courseId:cId(4),...m})); }
+    // ── Project Management Essentials ──
+    if (cId(5)) { [
+      {title:'Project Management Full Course',            type:'Video',  order:1, desc:'End-to-end intro to project management principles and practices.',                         url:'https://www.youtube.com/watch?v=GC7pN8Mjot8'},
+      {title:'Agile & Scrum in 20 Minutes',               type:'Video',  order:2, desc:'Understand sprints, backlogs, standups and agile values.',                                url:'https://www.youtube.com/watch?v=SWDhGSZNF9M'},
+      {title:'Risk Management in Projects',               type:'Video',  order:3, desc:'Identify, assess and respond to project risks.',                                          url:'https://www.youtube.com/watch?v=Kzg_NObLFxI'},
+      {title:'PMBOK Guide – Summary PDF',                 type:'PDF',    order:4, desc:'Summary of PMI PMBOK 7th Edition key concepts.',                                         url:'https://www.pmi.org/-/media/pmi/documents/public/pdf/pmbok-standards/pmbok-guide-7th-edition-sample.pdf'},
+      {title:'Stakeholder Management',                    type:'Article',order:5, desc:'Strategies for identifying and managing project stakeholders.',                           url:'https://www.pmi.org/learning/library/stakeholder-management-task-support-7579'},
+      {title:'Project Charter & Plan Template',           type:'Assignment',order:6,desc:'Complete a project charter and create a simple project plan.',                         url:'https://www.smartsheet.com/content/project-charter-templates'},
+    ].forEach(m => mats.push({id:Utils.uid(),courseId:cId(5),...m})); }
+    // ── Communication Skills ──
+    if (cId(6)) { [
+      {title:'Effective Communication Skills',            type:'Video',  order:1, desc:'Core principles of clear and confident communication.',                                   url:'https://www.youtube.com/watch?v=HAnw168huqA'},
+      {title:'Public Speaking & Presentation Tips',       type:'Video',  order:2, desc:'How to structure and deliver engaging presentations.',                                    url:'https://www.youtube.com/watch?v=AykYRO5d_lI'},
+      {title:'Active Listening Skills',                   type:'Video',  order:3, desc:'Techniques to become a better, more attentive listener.',                                 url:'https://www.youtube.com/watch?v=rzsVh8YwZEQ'},
+      {title:'Business Writing Essentials',               type:'Article',order:4, desc:'Writing clear emails, reports and professional documents.',                               url:'https://www.mindtools.com/pages/article/newCS_91.htm'},
+      {title:'Communication Skills – Free PDF Guide',    type:'PDF',    order:5, desc:'Comprehensive PDF covering verbal, non-verbal and written communication.',                url:'https://www.skillsyouneed.com/pdfs/communication-skills-ebook.pdf'},
+    ].forEach(m => mats.push({id:Utils.uid(),courseId:cId(6),...m})); }
+    // ── Leadership Foundations ──
+    if (cId(7)) { [
+      {title:'Leadership Styles Explained',               type:'Video',  order:1, desc:'Transformational, servant, democratic and other leadership styles.',                      url:'https://www.youtube.com/watch?v=v2PaZ8Nl2wg'},
+      {title:'Team Building & Motivation',                type:'Video',  order:2, desc:'How to build high-performing teams and keep them motivated.',                             url:'https://www.youtube.com/watch?v=sUOqHGFpBMg'},
+      {title:'Decision Making & Problem Solving',         type:'Video',  order:3, desc:'Frameworks for effective leadership decision making.',                                    url:'https://www.youtube.com/watch?v=t4GE6tHf9hg'},
+      {title:'Coaching & Mentoring Skills',               type:'Video',  order:4, desc:'How to coach and develop your team members.',                                             url:'https://www.youtube.com/watch?v=7V-fIGMDsss'},
+      {title:'Leadership – Harvard PDF Guide',            type:'PDF',    order:5, desc:'Harvard Business Review insights on effective leadership.',                               url:'https://hbr.org/resources/pdfs/comm/microsoft/BecomingaHighPerformingLeader.pdf'},
+      {title:'Leadership Self-Assessment',                type:'Quiz',   order:6, desc:'Assess your current leadership strengths and areas for growth.',                          url:'https://www.mindtools.com/pages/article/leadership-style-quiz.htm'},
+    ].forEach(m => mats.push({id:Utils.uid(),courseId:cId(7),...m})); }
+    if (mats.length > 0) Storage.set(Storage.KEYS.materials, mats);
+  }
   if (Storage.get(Storage.KEYS.sessions).length === 0) {
     const courses = Storage.get(Storage.KEYS.courses);
     const trainers = Storage.get(Storage.KEYS.trainers);
