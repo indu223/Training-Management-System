@@ -1,7 +1,7 @@
 ﻿# Training Management System
 
 A fully interactive, client-side Training Management System built as a single-page application.  
-Live demo: **https://discovertalent.github.io/Training-Management-System/**
+Live demo: **https://indu223.github.io/Training-Management-System/**
 
 ---
 
@@ -56,7 +56,7 @@ All external dependencies are loaded from CDNs — no npm, no Node.js, no server
 
 ```bash
 # First time
-git clone https://github.com/discovertalent/Training-Management-System.git
+git clone https://github.com/indu223/Training-Management-System.git
 cd Training-Management-System
 
 # Make changes to index.html, then:
@@ -100,3 +100,4 @@ location.reload();
 
 © Discover Talent  
 Designed & Developed by **Vinod Walwante**
+
