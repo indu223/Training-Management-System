@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Training Management System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <style>
+    :root{--sidebar:#1a2c4e;--sidebar-hover:rgba(255,255,255,.1);--accent:#4e9af1;--bg:#f4f6f9;--card:#fff;--border:#e3e6ea;--text:#1f2328;--muted:#6c757d;}
+    *{box-sizing:border-box;}
+    body{background:var(--bg);font-family:'Segoe UI',sans-serif;margin:0;}
+    /* ── SIDEBAR ── */
+    .sidebar{width:240px;min-height:100vh;background:var(--sidebar);position:fixed;top:0;left:0;z-index:200;display:flex;flex-direction:column;transition:width .25s;}
+    .sidebar-brand{padding:18px 20px 14px;border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0;}
+    .sidebar-brand h5{color:#fff;font-weight:700;margin:0;font-size:.95rem;}
+    .sidebar-brand p{color:rgba(255,255,255,.45);font-size:.7rem;margin:2px 0 0;}
+    .nav-section-label{font-size:.65rem;color:rgba(255,255,255,.35);padding:14px 20px 3px;text-transform:uppercase;letter-spacing:.08em;}
+    .sidebar .nav-link{color:rgba(255,255,255,.72);padding:9px 20px;border-radius:0;font-size:.855rem;display:flex;align-items:center;gap:10px;transition:background .15s,color .15s;border-left:3px solid transparent;}
+    .sidebar .nav-link:hover{background:var(--sidebar-hover);color:#fff;}
+    .sidebar .nav-link.active{background:var(--sidebar-hover);color:#fff;border-left-color:var(--accent);}
+    .sidebar .nav-link i{font-size:.95rem;width:18px;text-align:center;}
+    .sidebar-footer{margin-top:auto;padding:14px 20px;border-top:1px solid rgba(255,255,255,.1);font-size:.68rem;color:rgba(255,255,255,.38);line-height:1.5;}
+    /* ── MAIN ── */
+    .main-content{margin-left:240px;min-height:100vh;display:flex;flex-direction:column;}
+    .topbar{background:#fff;padding:12px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+    .topbar h4{margin:0;font-weight:600;color:var(--sidebar);font-size:1.05rem;}
+    .topbar-right{display:flex;align-items:center;gap:12px;}
+    .topbar-date{font-size:.78rem;color:var(--muted);}
+    .page-body{padding:24px 28px;flex:1;}
+    /* ── CARDS ── */
+    .stat-card{background:#fff;border-radius:10px;padding:18px 20px;border:1px solid var(--border);display:flex;align-items:center;gap:14px;}
+    .stat-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0;}
+    .stat-card h3{font-size:1.75rem;font-weight:700;margin:0;line-height:1;}
+    .stat-card p{color:var(--muted);font-size:.79rem;margin:3px 0 0;}
+    .card-plain{background:#fff;border:1px solid var(--border);border-radius:10px;padding:20px;}
+    /* ── PAGES ── */
+    .page{display:none;}.page.active{display:block;}
+    /* ── BADGES ── */
+    .badge-ilt{background:#e8f0fe;color:#1a73e8;font-weight:500;}
+    .badge-vilt{background:#e6f4ea;color:#1e7e34;font-weight:500;}
+    .badge-elearn{background:#fce8b2;color:#b06a00;font-weight:500;}
+    .status-open{background:#d4edda;color:#155724;}
+    .status-closed{background:#f8d7da;color:#721c24;}
+    .status-draft{background:#fff3cd;color:#856404;}
+    .status-completed{background:#d1ecf1;color:#0c5460;}
+    /* ── TABLE ── */
+    table th{font-size:.77rem;text-transform:uppercase;color:var(--muted);letter-spacing:.05em;font-weight:600;}
+    table td{font-size:.87rem;vertical-align:middle;}
+    /* ── AVATAR ── */
+    .avatar{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:#fff;flex-shrink:0;}
+    /* ── PROGRESS ── */
+    .progress{height:6px;}
+    /* ── SECTION TITLE ── */
+    .section-title{font-size:.95rem;font-weight:600;color:var(--sidebar);margin-bottom:14px;}
+    /* ── TOAST ── */
+    #toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+    .tms-toast{min-width:260px;max-width:340px;padding:12px 16px;border-radius:8px;color:#fff;font-size:.85rem;display:flex;align-items:center;gap:10px;box-shadow:0 4px 12px rgba(0,0,0,.18);animation:slideIn .25s ease;}
+    .tms-toast.success{background:#198754;}
+    .tms-toast.error{background:#dc3545;}
+    .tms-toast.info{background:#0d6efd;}
+    @keyframes slideIn{from{transform:translateX(60px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+    /* ── SPINNER ── */
+    .tms-spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    /* ── SEARCH HIGHLIGHT ── */
+    .search-highlight{background:#fff3cd;border-radius:3px;padding:0 2px;}
+    /* ── GLOBAL SEARCH RESULTS ── */
+    #global-search-results{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);max-height:360px;overflow-y:auto;z-index:500;display:none;}
+    .gs-item{padding:10px 14px;cursor:pointer;font-size:.85rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+    .gs-item:last-child{border-bottom:none;}
+    .gs-item:hover{background:#f4f6f9;}
+    .gs-badge{font-size:.7rem;padding:2px 7px;border-radius:20px;background:#e8f0fe;color:#1a73e8;flex-shrink:0;}
+    .gs-wrap{position:relative;flex:1;max-width:320px;}
+    /* ── EMPTY STATE ── */
+    .empty-state{text-align:center;padding:48px 20px;color:var(--muted);}
+    .empty-state i{font-size:2.5rem;display:block;margin-bottom:12px;opacity:.4;}
+    /* ── FOOTER ── */
+    .main-footer{background:#fff;border-top:1px solid var(--border);padding:12px 28px;text-align:center;font-size:.75rem;color:var(--muted);}
+    .main-footer strong{color:var(--sidebar);}
+    /* ── RESPONSIVE ── */
+    @media(max-width:768px){
+      .sidebar{width:0;overflow:hidden;}
+      .sidebar.open{width:240px;}
+      .main-content{margin-left:0;}
+    }
+    /* ── MODAL HELPERS ── */
+    .modal-header{background:var(--sidebar);color:#fff;}
+    .modal-header .btn-close{filter:invert(1);}
+    /* ── SORT ICONS ── */
+    th[data-sort]{cursor:pointer;user-select:none;}
+    th[data-sort]:hover{color:var(--sidebar);}
+    /* ── PROGRESS BAR IN TABLE ── */
+    .prog-wrap{display:flex;align-items:center;gap:8px;min-width:120px;}
+    .prog-wrap .progress{flex:1;}
+    .prog-wrap span{font-size:.78rem;white-space:nowrap;}
+  </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <h5><i class="bi bi-mortarboard-fill me-2"></i>TrainMS</h5>
+    <p>Training Management System</p>
+  </div>
+  <div class="nav-section-label">Main</div>
+  <nav class="nav flex-column">
+    <a href="#" class="nav-link active" data-page="dashboard"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+    <a href="#" class="nav-link" data-page="courses"><i class="bi bi-book"></i> Courses</a>
+    <a href="#" class="nav-link" data-page="trainers"><i class="bi bi-person-badge"></i> Trainers</a>
+    <a href="#" class="nav-link" data-page="learners"><i class="bi bi-people"></i> Learners</a>
+    <a href="#" class="nav-link" data-page="schedule"><i class="bi bi-calendar3"></i> Schedule</a>
+  </nav>
+  <div class="sidebar-footer">
+    <strong style="color:rgba(255,255,255,.6)">Discover Talent</strong><br/>
+    Designed &amp; Developed by<br/>Vinod Walwante
+  </div>
+</div>
+
+<!-- ── MAIN CONTENT ── -->
+<div class="main-content" id="main-content">
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- ══════════════════════ DASHBOARD ══════════════════════ -->
+  <div class="page active" id="page-dashboard">
+    <div class="topbar">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-sm btn-outline-secondary d-md-none" id="menu-toggle"><i class="bi bi-list"></i></button>
+        <h4><i class="bi bi-grid-1x2 me-2"></i>Dashboard</h4>
+      </div>
+      <div class="topbar-right">
+        <div class="gs-wrap">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="global-search-input" placeholder="Search everything…" autocomplete="off"/>
+          </div>
+          <div id="global-search-results"></div>
+        </div>
+        <span class="topbar-date" id="today-date"></span>
+      </div>
+    </div>
+    <div class="page-body">
+      <!-- Stat Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-4 col-xl-2-4">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#e8f0fe"><i class="bi bi-book text-primary"></i></div>
+            <div><h3 id="stat-courses">0</h3><p>Total Courses</p></div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-4 col-xl-2-4">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#e6f4ea"><i class="bi bi-person-badge text-success"></i></div>
+            <div><h3 id="stat-trainers">0</h3><p>Trainers</p></div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-4 col-xl-2-4">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#fff3cd"><i class="bi bi-people" style="color:#b06a00"></i></div>
+            <div><h3 id="stat-learners">0</h3><p>Learners</p></div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-4 col-xl-2-4">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#fce4ec"><i class="bi bi-calendar-check text-danger"></i></div>
+            <div><h3 id="stat-sessions">0</h3><p>Upcoming Sessions</p></div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-4 col-xl-2-4">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#e8f5e9"><i class="bi bi-patch-check text-success"></i></div>
+            <div><h3 id="stat-certs">0</h3><p>Certificates Issued</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-lg-7">
+          <div class="card-plain">
+            <div class="section-title">Upcoming Sessions</div>
+            <div class="table-responsive">
+              <table class="table table-borderless mb-0">
+                <thead><tr><th>Course</th><th>Trainer</th><th>Date</th><th>Mode</th><th>Status</th></tr></thead>
+                <tbody id="dash-sessions-tbody">
+                  <tr><td colspan="5" class="empty-state"><i class="bi bi-calendar3"></i>No sessions yet</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="card-plain h-100">
+            <div class="section-title">Course Enrollment</div>
+            <div id="dash-enrollment"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ COURSES ══════════════════════ -->
+  <div class="page" id="page-courses">
+    <div class="topbar">
+      <h4><i class="bi bi-book me-2"></i>Courses</h4>
+      <div class="d-flex gap-2">
+        <button class="btn btn-success btn-sm" id="btn-import-csv"><i class="bi bi-upload me-1"></i>Import CSV</button>
+        <input type="file" id="csv-import-file" accept=".csv" style="display:none"/>
+        <button class="btn btn-outline-secondary btn-sm" id="btn-export-courses"><i class="bi bi-download me-1"></i>Export CSV</button>
+        <button class="btn btn-primary btn-sm" id="btn-add-course"><i class="bi bi-plus-lg me-1"></i>Add Course</button>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="card-plain">
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+          <input class="form-control form-control-sm" id="course-search" placeholder="Search courses…" style="min-width:200px;max-width:260px"/>
+          <select class="form-select form-select-sm" id="course-filter-mode" style="max-width:140px">
+            <option value="">All Modes</option>
+            <option>ILT</option><option>VILT</option>
+          </select>
+          <select class="form-select form-select-sm" id="course-filter-status" style="max-width:140px">
+            <option value="">All Status</option>
+            <option>Open</option><option>Closed</option><option>Draft</option><option>Completed</option>
+          </select>
+          <select class="form-select form-select-sm" id="course-sort" style="max-width:160px">
+            <option value="name-asc">Name A→Z</option>
+            <option value="name-desc">Name Z→A</option>
+            <option value="date-asc">Start Date ↑</option>
+            <option value="date-desc">Start Date ↓</option>
+          </select>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>Course Name</th>
+                <th>Category</th>
+                <th>Trainer</th>
+                <th>Duration</th>
+                <th>Mode</th>
+                <th>Capacity</th>
+                <th>Start Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="courses-tbody"></tbody>
+          </table>
+        </div>
+        <div id="courses-count" class="text-muted mt-1" style="font-size:.8rem"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ TRAINERS ══════════════════════ -->
+  <div class="page" id="page-trainers">
+    <div class="topbar">
+      <h4><i class="bi bi-person-badge me-2"></i>Trainers</h4>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm" id="btn-export-trainers"><i class="bi bi-download me-1"></i>Export CSV</button>
+        <button class="btn btn-primary btn-sm" id="btn-add-trainer"><i class="bi bi-plus-lg me-1"></i>Add Trainer</button>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="card-plain">
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+          <input class="form-control form-control-sm" id="trainer-search" placeholder="Search trainers…" style="min-width:200px;max-width:280px"/>
+          <select class="form-select form-select-sm" id="trainer-filter-status" style="max-width:160px">
+            <option value="">All Status</option>
+            <option>Active</option><option>On Leave</option><option>Inactive</option>
+          </select>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>Department</th>
+                <th>Expertise</th><th>Mode</th><th>Availability</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="trainers-tbody"></tbody>
+          </table>
+        </div>
+        <div id="trainers-count" class="text-muted mt-1" style="font-size:.8rem"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ LEARNERS ══════════════════════ -->
+  <div class="page" id="page-learners">
+    <div class="topbar">
+      <h4><i class="bi bi-people me-2"></i>Learners</h4>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm" id="btn-export-learners"><i class="bi bi-download me-1"></i>Export CSV</button>
+        <button class="btn btn-primary btn-sm" id="btn-add-learner"><i class="bi bi-plus-lg me-1"></i>Add Learner</button>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="card-plain">
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+          <input class="form-control form-control-sm" id="learner-search" placeholder="Search learners…" style="min-width:200px;max-width:280px"/>
+          <select class="form-select form-select-sm" id="learner-filter-dept" style="max-width:160px">
+            <option value="">All Departments</option>
+          </select>
+          <select class="form-select form-select-sm" id="learner-filter-status" style="max-width:160px">
+            <option value="">All Status</option>
+            <option>Active</option><option>Inactive</option><option>Pending</option>
+          </select>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>#</th><th>Name</th><th>Employee ID</th><th>Department</th><th>Email</th>
+                <th>Assigned Course</th><th>Progress</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="learners-tbody"></tbody>
+          </table>
+        </div>
+        <div id="learners-count" class="text-muted mt-1" style="font-size:.8rem"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ SCHEDULE ══════════════════════ -->
+  <div class="page" id="page-schedule">
+    <div class="topbar">
+      <h4><i class="bi bi-calendar3 me-2"></i>Schedule</h4>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm" id="btn-export-schedule"><i class="bi bi-download me-1"></i>Export CSV</button>
+        <button class="btn btn-primary btn-sm" id="btn-add-session"><i class="bi bi-plus-lg me-1"></i>New Session</button>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="card-plain">
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+          <input class="form-control form-control-sm" id="session-search" placeholder="Search sessions…" style="min-width:200px;max-width:280px"/>
+          <select class="form-select form-select-sm" id="session-filter-mode" style="max-width:140px">
+            <option value="">All Modes</option><option>ILT</option><option>VILT</option>
+          </select>
+          <select class="form-select form-select-sm" id="session-filter-status" style="max-width:140px">
+            <option value="">All Status</option>
+            <option>Open</option><option>Closed</option><option>Draft</option><option>Completed</option>
+          </select>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>#</th><th>Course</th><th>Trainer</th><th>Date</th><th>Time</th>
+                <th>Location</th><th>Mode</th><th>Seats</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="sessions-tbody"></tbody>
+          </table>
+        </div>
+        <div id="sessions-count" class="text-muted mt-1" style="font-size:.8rem"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ FOOTER ══════════════════════ -->
+  <footer class="main-footer">
+    &copy; <span id="footer-year"></span> <strong>Discover Talent</strong> &nbsp;|&nbsp;
+    Designed &amp; Developed by <strong>Vinod Walwante</strong>
+  </footer>
+</div><!-- /main-content -->
+
+<!-- ════════════════════════════════════
+     MODALS
+═════════════════════════════════════ -->
+
+<!-- COURSE MODAL -->
+<div class="modal fade" id="courseModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="courseModalTitle">Add Course</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="course-form" novalidate>
+          <input type="hidden" id="course-id"/>
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label">Course Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="c-name" required/>
+              <div class="invalid-feedback">Course name is required.</div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Category <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="c-category" required placeholder="e.g. IT, Soft Skills"/>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" id="c-desc" rows="3"></textarea>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Duration <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="c-duration" required placeholder="e.g. 2 Days"/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Mode <span class="text-danger">*</span></label>
+              <select class="form-select" id="c-mode" required>
+                <option value="">Select…</option>
+                <option>ILT</option><option>VILT</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Trainer <span class="text-danger">*</span></label>
+              <select class="form-select" id="c-trainer" required>
+                <option value="">Select…</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Capacity <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="c-capacity" required min="1"/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="c-status">
+                <option>Open</option><option>Draft</option><option>Closed</option><option>Completed</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Start Date</label>
+              <input type="date" class="form-control" id="c-start"/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">End Date</label>
+              <input type="date" class="form-control" id="c-end"/>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-save-course">
+          <span class="tms-spinner me-1 d-none" id="course-spinner"></span>Save Course
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TRAINER MODAL -->
+<div class="modal fade" id="trainerModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="trainerModalTitle">Add Trainer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="trainer-form" novalidate>
+          <input type="hidden" id="trainer-id"/>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Full Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="t-name" required/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" id="t-email" required/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Phone</label>
+              <input type="text" class="form-control" id="t-phone"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Department</label>
+              <input type="text" class="form-control" id="t-dept"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Expertise</label>
+              <input type="text" class="form-control" id="t-expertise"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Mode</label>
+              <select class="form-select" id="t-mode">
+                <option value="">Select…</option>
+                <option>ILT</option><option>VILT</option><option>Both</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Availability</label>
+              <input type="text" class="form-control" id="t-avail" placeholder="e.g. Mon–Fri"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="t-status">
+                <option>Active</option><option>On Leave</option><option>Inactive</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-save-trainer">Save Trainer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LEARNER MODAL -->
+<div class="modal fade" id="learnerModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="learnerModalTitle">Add Learner</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="learner-form" novalidate>
+          <input type="hidden" id="learner-id"/>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Full Name <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="l-name" required/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Employee ID <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="l-empid" required/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email <span class="text-danger">*</span></label>
+              <input type="email" class="form-control" id="l-email" required/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Department</label>
+              <input type="text" class="form-control" id="l-dept"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Assigned Course</label>
+              <select class="form-select" id="l-course">
+                <option value="">Select…</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Progress (%)</label>
+              <input type="number" class="form-control" id="l-progress" min="0" max="100" value="0"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="l-status">
+                <option>Active</option><option>Inactive</option><option>Pending</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-save-learner">Save Learner</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION MODAL -->
+<div class="modal fade" id="sessionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sessionModalTitle">New Session</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="session-form" novalidate>
+          <input type="hidden" id="session-id"/>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Course <span class="text-danger">*</span></label>
+              <select class="form-select" id="s-course" required>
+                <option value="">Select…</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Trainer <span class="text-danger">*</span></label>
+              <select class="form-select" id="s-trainer" required>
+                <option value="">Select…</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="s-date" required/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Time</label>
+              <input type="text" class="form-control" id="s-time" placeholder="e.g. 9:00 AM – 5:00 PM"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Location / Platform</label>
+              <input type="text" class="form-control" id="s-location" placeholder="Training Room A / Zoom"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Mode</label>
+              <select class="form-select" id="s-mode">
+                <option>ILT</option><option>VILT</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Seats Available</label>
+              <input type="number" class="form-control" id="s-seats" min="1" value="20"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="s-status">
+                <option>Open</option><option>Draft</option><option>Closed</option><option>Completed</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-save-session">Save Session</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header" style="background:#dc3545">
+        <h5 class="modal-title text-white"><i class="bi bi-exclamation-triangle me-2"></i>Confirm Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1)"></button>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-message" class="mb-0">Are you sure you want to delete this record? This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger btn-sm" id="btn-confirm-delete">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════
+//  STORAGE MODULE
+// ═══════════════════════════════════════════════════
+const Storage = {
+  get(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } },
+  set(key, val) { localStorage.setItem(key, JSON.stringify(val)); },
+  KEYS: { courses:'tms_courses', trainers:'tms_trainers', learners:'tms_learners', sessions:'tms_sessions' }
+};
+
+// ═══════════════════════════════════════════════════
+//  UTILS MODULE
+// ═══════════════════════════════════════════════════
+const Utils = {
+  uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); },
+  avatarColor(name) {
+    const colors = ['#1a2c4e','#2e7d32','#6a1b9a','#c62828','#00695c','#e65100','#1565c0','#ad1457','#37474f','#4527a0'];
+    let h = 0; for (const c of (name||'?')) h = (h * 31 + c.charCodeAt(0)) & 0xFFFF;
+    return colors[h % colors.length];
+  },
+  initials(name) { return (name||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); },
+  avatar(name) {
+    return `<span class="avatar me-2" style="background:${Utils.avatarColor(name)}">${Utils.initials(name)}</span>`;
+  },
+  modeBadge(mode) {
+    if (mode==='ILT') return `<span class="badge badge-ilt">ILT</span>`;
+    if (mode==='VILT') return `<span class="badge badge-vilt">VILT</span>`;
+    return `<span class="badge badge-elearn">${mode||''}</span>`;
+  },
+  statusBadge(s) {
+    const map = {Open:'status-open',Closed:'status-closed',Draft:'status-draft',Completed:'status-completed',
+                 Active:'bg-success-subtle text-success',Inactive:'bg-secondary-subtle text-secondary',
+                 Pending:'bg-warning-subtle text-warning','On Leave':'bg-warning-subtle text-warning'};
+    return `<span class="badge ${map[s]||'bg-secondary'}">${s||''}</span>`;
+  },
+  fmtDate(d) { if (!d) return '—'; try { return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); } catch { return d; } },
+  escHtml(s) { const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; },
+  downloadCSV(filename, rows) {
+    const csv = rows.map(r => r.map(c => `"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+    a.download = filename; a.click();
+  }
+};
+
+// ═══════════════════════════════════════════════════
+//  TOAST MODULE
+// ═══════════════════════════════════════════════════
+const Toast = {
+  show(msg, type='success', duration=3000) {
+    const icon = type==='success'?'bi-check-circle':type==='error'?'bi-x-circle':'bi-info-circle';
+    const t = document.createElement('div');
+    t.className = `tms-toast ${type}`;
+    t.innerHTML = `<i class="bi ${icon}"></i><span>${Utils.escHtml(msg)}</span>`;
+    document.getElementById('toast-container').appendChild(t);
+    setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(()=>t.remove(),400); }, duration);
+  }
+};
+
+// ═══════════════════════════════════════════════════
+//  CONFIRM DELETE
+// ═══════════════════════════════════════════════════
+let _confirmCb = null;
+const ConfirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+document.getElementById('btn-confirm-delete').addEventListener('click', ()=>{
+  if (_confirmCb) _confirmCb();
+  ConfirmModal.hide();
+});
+function confirmDelete(msg, cb) {
+  document.getElementById('confirm-message').textContent = msg || 'Are you sure you want to delete this record?';
+  _confirmCb = cb;
+  ConfirmModal.show();
+}
+
+// ═══════════════════════════════════════════════════
+//  SEED DATA
+// ═══════════════════════════════════════════════════
+function seedData() {
+  if (Storage.get(Storage.KEYS.trainers).length === 0) {
+    Storage.set(Storage.KEYS.trainers, [
+      {id:Utils.uid(),name:'John Smith',email:'john.smith@company.com',phone:'+1 555-0101',dept:'IT',expertise:'Microsoft Office',mode:'ILT',avail:'Mon–Fri',status:'Active'},
+      {id:Utils.uid(),name:'Sarah Lee',email:'sarah.lee@company.com',phone:'+1 555-0102',dept:'Operations',expertise:'Project Management',mode:'Both',avail:'Mon–Thu',status:'Active'},
+      {id:Utils.uid(),name:'Mark Johnson',email:'mark.j@company.com',phone:'+1 555-0103',dept:'HR',expertise:'Soft Skills',mode:'VILT',avail:'Tue–Fri',status:'Active'},
+      {id:Utils.uid(),name:'Emily Chen',email:'emily.c@company.com',phone:'+1 555-0104',dept:'IT',expertise:'Data Science',mode:'ILT',avail:'Mon–Wed',status:'On Leave'},
+      {id:Utils.uid(),name:'David Tan',email:'david.t@company.com',phone:'+1 555-0105',dept:'HSE',expertise:'Health & Safety',mode:'Both',avail:'Mon–Fri',status:'Active'},
+    ]);
+  }
+  if (Storage.get(Storage.KEYS.courses).length === 0) {
+    const trainers = Storage.get(Storage.KEYS.trainers);
+    const tName = (i) => trainers[i] ? trainers[i].name : 'John Smith';
+    Storage.set(Storage.KEYS.courses, [
+      {id:Utils.uid(),name:'Excel for Beginners',category:'IT',desc:'Learn Microsoft Excel from scratch including formulas, functions, formatting, charts, sorting, filtering, and basic data analysis.',duration:'2 Days',mode:'ILT',trainer:tName(0),capacity:20,status:'Open',start:'2025-07-15',end:'2025-07-16'},
+      {id:Utils.uid(),name:'Advanced Excel',category:'IT',desc:'Master advanced Excel features including pivot tables, VLOOKUP, macros, and data modelling.',duration:'2 Days',mode:'ILT',trainer:tName(0),capacity:20,status:'Open',start:'2025-08-04',end:'2025-08-05'},
+      {id:Utils.uid(),name:'Power BI Fundamentals',category:'Analytics',desc:'Introduction to Power BI for data visualisation and interactive dashboards.',duration:'3 Days',mode:'ILT',trainer:tName(3),capacity:15,status:'Open',start:'2025-08-11',end:'2025-08-13'},
+      {id:Utils.uid(),name:'Python Basics',category:'IT',desc:'Introduction to Python programming: variables, loops, functions, and file handling.',duration:'4 Days',mode:'ILT',trainer:tName(3),capacity:20,status:'Draft',start:'2025-09-01',end:'2025-09-04'},
+      {id:Utils.uid(),name:'AI with IBM watsonx',category:'AI',desc:'Hands-on introduction to IBM watsonx AI platform, prompt engineering, and building AI-powered solutions.',duration:'2 Days',mode:'VILT',trainer:tName(3),capacity:25,status:'Open',start:'2025-09-15',end:'2025-09-16'},
+      {id:Utils.uid(),name:'Project Management Essentials',category:'Management',desc:'Agile, Waterfall, risk, and stakeholder management.',duration:'3 Days',mode:'ILT',trainer:tName(1),capacity:25,status:'Open',start:'2025-07-18',end:'2025-07-20'},
+      {id:Utils.uid(),name:'Communication Skills',category:'Soft Skills',desc:'Presentation, writing, and active listening.',duration:'1 Day',mode:'VILT',trainer:tName(2),capacity:15,status:'Open',start:'2025-07-22',end:'2025-07-22'},
+      {id:Utils.uid(),name:'Leadership Foundations',category:'Management',desc:'Team building, decision making, and coaching.',duration:'2 Days',mode:'VILT',trainer:tName(1),capacity:20,status:'Closed',start:'2025-06-10',end:'2025-06-11'},
+    ]);
+  }
+  if (Storage.get(Storage.KEYS.learners).length === 0) {
+    const courses = Storage.get(Storage.KEYS.courses);
+    const cName = (i) => courses[i] ? courses[i].name : '';
+    Storage.set(Storage.KEYS.learners, [
+      {id:Utils.uid(),name:'Alice Nguyen',empid:'EMP001',email:'alice.n@company.com',dept:'Finance',course:cName(0),progress:70,status:'Active'},
+      {id:Utils.uid(),name:'Ben Walker',empid:'EMP002',email:'ben.w@company.com',dept:'Operations',course:cName(1),progress:100,status:'Active'},
+      {id:Utils.uid(),name:'Clara Kim',empid:'EMP003',email:'clara.k@company.com',dept:'HR',course:cName(5),progress:50,status:'Active'},
+      {id:Utils.uid(),name:'Daniel Reyes',empid:'EMP004',email:'daniel.r@company.com',dept:'IT',course:cName(2),progress:30,status:'Active'},
+      {id:Utils.uid(),name:'Eva Patel',empid:'EMP005',email:'eva.p@company.com',dept:'Sales',course:cName(3),progress:0,status:'Inactive'},
+      {id:Utils.uid(),name:'Felix Moore',empid:'EMP006',email:'felix.m@company.com',dept:'Finance',course:cName(0),progress:100,status:'Active'},
+      {id:Utils.uid(),name:'Grace Tran',empid:'EMP007',email:'grace.t@company.com',dept:'Operations',course:cName(4),progress:60,status:'Active'},
+      {id:Utils.uid(),name:'Harry Osei',empid:'EMP008',email:'harry.o@company.com',dept:'IT',course:cName(2),progress:80,status:'Active'},
+      {id:Utils.uid(),name:'Irene Zhu',empid:'EMP009',email:'irene.z@company.com',dept:'HR',course:cName(6),progress:100,status:'Active'},
+      {id:Utils.uid(),name:'James Brown',empid:'EMP010',email:'james.b@company.com',dept:'Sales',course:cName(5),progress:10,status:'Pending'},
+    ]);
+  }
+  if (Storage.get(Storage.KEYS.sessions).length === 0) {
+    const courses = Storage.get(Storage.KEYS.courses);
+    const trainers = Storage.get(Storage.KEYS.trainers);
+    const cName = (i) => courses[i] ? courses[i].name : '';
+    const tName = (i) => trainers[i] ? trainers[i].name : '';
+    Storage.set(Storage.KEYS.sessions, [
+      {id:Utils.uid(),course:cName(0),trainer:tName(0),date:'2025-07-15',time:'9:00 AM – 5:00 PM',location:'Training Room A',mode:'ILT',seats:20,status:'Open'},
+      {id:Utils.uid(),course:cName(5),trainer:tName(1),date:'2025-07-18',time:'9:00 AM – 5:00 PM',location:'Training Room B',mode:'ILT',seats:25,status:'Open'},
+      {id:Utils.uid(),course:cName(6),trainer:tName(2),date:'2025-07-22',time:'10:00 AM – 5:00 PM',location:'Microsoft Teams',mode:'VILT',seats:15,status:'Open'},
+      {id:Utils.uid(),course:cName(3),trainer:tName(3),date:'2025-09-01',time:'9:00 AM – 5:00 PM',location:'Computer Lab 1',mode:'ILT',seats:20,status:'Draft'},
+      {id:Utils.uid(),course:cName(4),trainer:tName(3),date:'2025-09-15',time:'9:00 AM – 5:00 PM',location:'Zoom',mode:'VILT',seats:25,status:'Open'},
+    ]);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  DASHBOARD MODULE
+// ═══════════════════════════════════════════════════
+const Dashboard = {
+  render() {
+    const courses  = Storage.get(Storage.KEYS.courses);
+    const trainers = Storage.get(Storage.KEYS.trainers);
+    const learners = Storage.get(Storage.KEYS.learners);
+    const sessions = Storage.get(Storage.KEYS.sessions);
+    const today    = new Date().toISOString().slice(0,10);
+    const upcoming = sessions.filter(s => s.date >= today && s.status !== 'Completed');
+    const certs    = learners.filter(l => l.progress >= 100).length;
+
+    document.getElementById('stat-courses').textContent  = courses.length;
+    document.getElementById('stat-trainers').textContent = trainers.length;
+    document.getElementById('stat-learners').textContent = learners.length;
+    document.getElementById('stat-sessions').textContent = upcoming.length;
+    document.getElementById('stat-certs').textContent    = certs;
+
+    // Upcoming sessions table
+    const tbody = document.getElementById('dash-sessions-tbody');
+    if (upcoming.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="empty-state"><i class="bi bi-calendar3"></i>No upcoming sessions</td></tr>`;
+    } else {
+      tbody.innerHTML = upcoming.slice(0,6).map(s => `
+        <tr>
+          <td class="fw-semibold">${Utils.escHtml(s.course)}</td>
+          <td>${Utils.escHtml(s.trainer)}</td>
+          <td>${Utils.fmtDate(s.date)}</td>
+          <td>${Utils.modeBadge(s.mode)}</td>
+          <td>${Utils.statusBadge(s.status)}</td>
+        </tr>`).join('');
+    }
+
+    // Enrollment progress
+    const enroll = document.getElementById('dash-enrollment');
+    if (courses.length === 0) {
+      enroll.innerHTML = `<div class="empty-state"><i class="bi bi-book"></i>No courses yet</div>`;
+    } else {
+      enroll.innerHTML = courses.slice(0,6).map(c => {
+        const enrolled = learners.filter(l => l.course === c.name).length;
+        const pct = c.capacity > 0 ? Math.round((enrolled/c.capacity)*100) : 0;
+        const colors = ['bg-primary','bg-success','bg-warning','bg-danger','bg-info'];
+        const col = colors[courses.indexOf(c) % colors.length];
+        return `<div class="mb-3">
+          <div class="d-flex justify-content-between mb-1">
+            <span style="font-size:.83rem">${Utils.escHtml(c.name)}</span>
+            <small class="text-muted">${enrolled}/${c.capacity}</small>
+          </div>
+          <div class="progress"><div class="progress-bar ${col}" style="width:${pct}%"></div></div>
+        </div>`;
+      }).join('');
+    }
+  }
+};
+
+// ═══════════════════════════════════════════════════
+//  COURSES MODULE
+// ═══════════════════════════════════════════════════
+const Courses = {
+  modal: null,
+  init() {
+    this.modal = new bootstrap.Modal(document.getElementById('courseModal'));
+    document.getElementById('btn-add-course').addEventListener('click', () => this.openAdd());
+    document.getElementById('btn-save-course').addEventListener('click', () => this.save());
+    document.getElementById('course-search').addEventListener('input', () => this.render());
+    document.getElementById('course-filter-mode').addEventListener('change', () => this.render());
+    document.getElementById('course-filter-status').addEventListener('change', () => this.render());
+    document.getElementById('course-sort').addEventListener('change', () => this.render());
+    document.getElementById('btn-export-courses').addEventListener('click', () => this.exportCSV());
+    document.getElementById('btn-import-csv').addEventListener('click', () => document.getElementById('csv-import-file').click());
+    document.getElementById('csv-import-file').addEventListener('change', (e) => this.importCSV(e));
+    this.render();
+  },
+  getFiltered() {
+    let data = Storage.get(Storage.KEYS.courses);
+    const q    = document.getElementById('course-search').value.trim().toLowerCase();
+    const mode = document.getElementById('course-filter-mode').value;
+    const stat = document.getElementById('course-filter-status').value;
+    const sort = document.getElementById('course-sort').value;
+    if (q)    data = data.filter(c => c.name.toLowerCase().includes(q) || (c.category||'').toLowerCase().includes(q) || (c.trainer||'').toLowerCase().includes(q));
+    if (mode) data = data.filter(c => c.mode === mode);
+    if (stat) data = data.filter(c => c.status === stat);
+    if (sort === 'name-asc')  data.sort((a,b) => a.name.localeCompare(b.name));
+    if (sort === 'name-desc') data.sort((a,b) => b.name.localeCompare(a.name));
+    if (sort === 'date-asc')  data.sort((a,b) => (a.start||'').localeCompare(b.start||''));
+    if (sort === 'date-desc') data.sort((a,b) => (b.start||'').localeCompare(a.start||''));
+    return data;
+  },
+  render() {
+    const data = this.getFiltered();
+    const tbody = document.getElementById('courses-tbody');
+    document.getElementById('courses-count').textContent = `Showing ${data.length} course${data.length!==1?'s':''}`;
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10" class="empty-state"><i class="bi bi-book"></i>No courses found</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((c,i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td>
+          <div class="fw-semibold">${Utils.escHtml(c.name)}</div>
+          <div class="text-muted" style="font-size:.76rem">${Utils.escHtml((c.desc||'').slice(0,60))}${(c.desc||'').length>60?'…':''}</div>
+        </td>
+        <td>${Utils.escHtml(c.category||'—')}</td>
+        <td>${Utils.escHtml(c.trainer||'—')}</td>
+        <td>${Utils.escHtml(c.duration||'—')}</td>
+        <td>${Utils.modeBadge(c.mode)}</td>
+        <td>${c.capacity||'—'}</td>
+        <td>${Utils.fmtDate(c.start)}</td>
+        <td>${Utils.statusBadge(c.status)}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="Courses.openEdit('${c.id}')"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="Courses.delete('${c.id}','${Utils.escHtml(c.name)}')"><i class="bi bi-trash"></i></button>
+        </td>
+      </tr>`).join('');
+  },
+  populateTrainerSelect(selected) {
+    const trainers = Storage.get(Storage.KEYS.trainers);
+    const sel = document.getElementById('c-trainer');
+    sel.innerHTML = `<option value="">Select…</option>` + trainers.map(t => `<option${t.name===selected?' selected':''}>${Utils.escHtml(t.name)}</option>`).join('');
+  },
+  openAdd() {
+    document.getElementById('courseModalTitle').textContent = 'Add Course';
+    document.getElementById('course-form').reset();
+    document.getElementById('course-id').value = '';
+    document.querySelectorAll('#course-form .is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+    this.populateTrainerSelect('');
+    this.modal.show();
+  },
+  openEdit(id) {
+    const c = Storage.get(Storage.KEYS.courses).find(x=>x.id===id);
+    if (!c) return;
+    document.getElementById('courseModalTitle').textContent = 'Edit Course';
+    document.getElementById('course-id').value = c.id;
+    document.getElementById('c-name').value     = c.name;
+    document.getElementById('c-category').value = c.category||'';
+    document.getElementById('c-desc').value     = c.desc||'';
+    document.getElementById('c-duration').value = c.duration||'';
+    document.getElementById('c-mode').value     = c.mode||'';
+    document.getElementById('c-capacity').value = c.capacity||'';
+    document.getElementById('c-status').value   = c.status||'Open';
+    document.getElementById('c-start').value    = c.start||'';
+    document.getElementById('c-end').value      = c.end||'';
+    document.querySelectorAll('#course-form .is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+    this.populateTrainerSelect(c.trainer||'');
+    this.modal.show();
+  },
+  validate() {
+    const fields = ['c-name','c-category','c-duration','c-mode','c-trainer','c-capacity'];
+    let ok = true;
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('is-invalid');
+      if (!el.value.trim()) { el.classList.add('is-invalid'); ok = false; }
+    });
+    return ok;
+  },
+  save() {
+    if (!this.validate()) { Toast.show('Please fill in all required fields.','error'); return; }
+    const spinner = document.getElementById('course-spinner');
+    spinner.classList.remove('d-none');
+    setTimeout(() => {
+      const id = document.getElementById('course-id').value;
+      const name = document.getElementById('c-name').value.trim();
+      const courses = Storage.get(Storage.KEYS.courses);
+      // Duplicate check
+      const dup = courses.find(c => c.name.toLowerCase()===name.toLowerCase() && c.id!==id);
+      if (dup) { spinner.classList.add('d-none'); Toast.show('A course with this name already exists.','error'); document.getElementById('c-name').classList.add('is-invalid'); return; }
+      const record = {
+        id: id || Utils.uid(),
+        name,
+        category: document.getElementById('c-category').value.trim(),
+        desc: document.getElementById('c-desc').value.trim(),
+        duration: document.getElementById('c-duration').value.trim(),
+        mode: document.getElementById('c-mode').value,
+        trainer: document.getElementById('c-trainer').value,
+        capacity: parseInt(document.getElementById('c-capacity').value)||0,
+        status: document.getElementById('c-status').value,
+        start: document.getElementById('c-start').value,
+        end: document.getElementById('c-end').value,
+      };
+      if (id) {
+        const idx = courses.findIndex(c=>c.id===id);
+        courses[idx] = record;
+        Storage.set(Storage.KEYS.courses, courses);
+        Toast.show('Course updated successfully.');
+      } else {
+        courses.push(record);
+        Storage.set(Storage.KEYS.courses, courses);
+        Toast.show('Course added successfully.');
+      }
+      spinner.classList.add('d-none');
+      this.modal.hide();
+      this.render();
+      Dashboard.render();
+    }, 400);
+  },
+  delete(id, name) {
+    confirmDelete(`Delete course "${name}"? This cannot be undone.`, () => {
+      const courses = Storage.get(Storage.KEYS.courses).filter(c=>c.id!==id);
+      Storage.set(Storage.KEYS.courses, courses);
+      this.render();
+      Dashboard.render();
+      Toast.show('Course deleted.','info');
+    });
+  },
+  exportCSV() {
+    const data = Storage.get(Storage.KEYS.courses);
+    const headers = ['Name','Category','Description','Duration','Mode','Trainer','Capacity','Status','Start Date','End Date'];
+    const rows = data.map(c => [c.name,c.category,c.desc,c.duration,c.mode,c.trainer,c.capacity,c.status,c.start,c.end]);
+    Utils.downloadCSV('courses.csv', [headers, ...rows]);
+    Toast.show('Courses exported to CSV.');
+  },
+  importCSV(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const lines = ev.target.result.trim().split('\n').slice(1); // skip header
+      const courses = Storage.get(Storage.KEYS.courses);
+      let added = 0, skipped = 0;
+      lines.forEach(line => {
+        const cols = line.split(',').map(c=>c.replace(/^"|"$/g,'').trim());
+        if (!cols[0]) return;
+        const name = cols[0];
+        if (courses.find(c=>c.name.toLowerCase()===name.toLowerCase())) { skipped++; return; }
+        courses.push({id:Utils.uid(),name,category:cols[1]||'',desc:cols[2]||'',duration:cols[3]||'',mode:cols[4]||'ILT',trainer:cols[5]||'',capacity:parseInt(cols[6])||20,status:cols[7]||'Open',start:cols[8]||'',end:cols[9]||''});
+        added++;
+      });
+      Storage.set(Storage.KEYS.courses, courses);
+      this.render(); Dashboard.render();
+      Toast.show(`Imported ${added} courses. ${skipped} skipped (duplicates).`);
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  }
+};
+
+// ═══════════════════════════════════════════════════
+//  TRAINERS MODULE
+// ═══════════════════════════════════════════════════
+const Trainers = {
+  modal: null,
+  init() {
+    this.modal = new bootstrap.Modal(document.getElementById('trainerModal'));
+    document.getElementById('btn-add-trainer').addEventListener('click', () => this.openAdd());
+    document.getElementById('btn-save-trainer').addEventListener('click', () => this.save());
+    document.getElementById('trainer-search').addEventListener('input', () => this.render());
+    document.getElementById('trainer-filter-status').addEventListener('change', () => this.render());
+    document.getElementById('btn-export-trainers').addEventListener('click', () => this.exportCSV());
+    this.render();
+  },
+  getFiltered() {
+    let data = Storage.get(Storage.KEYS.trainers);
+    const q    = document.getElementById('trainer-search').value.trim().toLowerCase();
+    const stat = document.getElementById('trainer-filter-status').value;
+    if (q)    data = data.filter(t => t.name.toLowerCase().includes(q) || (t.email||'').toLowerCase().includes(q) || (t.expertise||'').toLowerCase().includes(q) || (t.dept||'').toLowerCase().includes(q));
+    if (stat) data = data.filter(t => t.status === stat);
+    return data;
+  },
+  render() {
+    const data = this.getFiltered();
+    const tbody = document.getElementById('trainers-tbody');
+    document.getElementById('trainers-count').textContent = `Showing ${data.length} trainer${data.length!==1?'s':''}`;
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10" class="empty-state"><i class="bi bi-person-badge"></i>No trainers found</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((t,i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td>${Utils.avatar(t.name)}${Utils.escHtml(t.name)}</td>
+        <td>${Utils.escHtml(t.email||'—')}</td>
+        <td>${Utils.escHtml(t.phone||'—')}</td>
+        <td>${Utils.escHtml(t.dept||'—')}</td>
+        <td>${Utils.escHtml(t.expertise||'—')}</td>
+        <td>${Utils.modeBadge(t.mode)}</td>
+        <td>${Utils.escHtml(t.avail||'—')}</td>
+        <td>${Utils.statusBadge(t.status)}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="Trainers.openEdit('${t.id}')"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="Trainers.delete('${t.id}','${Utils.escHtml(t.name)}')"><i class="bi bi-trash"></i></button>
+        </td>
+      </tr>`).join('');
+  },
+  openAdd() {
+    document.getElementById('trainerModalTitle').textContent = 'Add Trainer';
+    document.getElementById('trainer-form').reset();
+    document.getElementById('trainer-id').value = '';
+    document.querySelectorAll('#trainer-form .is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+    this.modal.show();
+  },
+  openEdit(id) {
+    const t = Storage.get(Storage.KEYS.trainers).find(x=>x.id===id);
+    if (!t) return;
+    document.getElementById('trainerModalTitle').textContent = 'Edit Trainer';
+    document.getElementById('trainer-id').value   = t.id;
+    document.getElementById('t-name').value       = t.name;
+    document.getElementById('t-email').value      = t.email||'';
+    document.getElementById('t-phone').value      = t.phone||'';
+    document.getElementById('t-dept').value       = t.dept||'';
+    document.getElementById('t-expertise').value  = t.expertise||'';
+    document.getElementById('t-mode').value       = t.mode||'';
+    document.getElementById('t-avail').value      = t.avail||'';
+    document.getElementById('t-status').value     = t.status||'Active';
+    document.querySelectorAll('#trainer-form .is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+    this.modal.show();
+  },
+  validate() {
+    let ok = true;
+    ['t-name','t-email'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('is-invalid');
+      if (!el.value.trim()) { el.classList.add('is-invalid'); ok = false; }
+    });
+    return ok;
+  },
+  save() {
+    if (!this.validate()) { Toast.show('Please fill in all required fields.','error'); return; }
+    const id = document.getElementById('trainer-id').value;
+    const record = {
+      id: id || Utils.uid(),
+      name:      document.getElementById('t-name').value.trim(),
+      email:     document.getElementById('t-email').value.trim(),
+      phone:     document.getElementById('t-phone').value.trim(),
+      dept:      document.getElementById('t-dept').value.trim(),
+      expertise: document.getElementById('t-expertise').value.trim(),
+      mode:      document.getElementById('t-mode').value,
+      avail:     document.getElementById('t-avail').value.trim(),
+      status:    document.getElementById('t-status').value,
+    };
+    const trainers = Storage.get(Storage.KEYS.trainers);
+    if (id) {
+      const idx = trainers.findIndex(t=>t.id===id);
+      trainers[idx] = record;
+      Toast.show('Trainer updated successfully.');
+    } else {
+      trainers.push(record);
+      Toast.show('Trainer added successfully.');
+    }
+    Storage.set(Storage.KEYS.trainers, trainers);
+    this.modal.hide();
+    this.render();
+    Dashboard.render();
+  },
+  delete(id, name) {
+    confirmDelete(`Delete trainer "${name}"?`, () => {
+      const trainers = Storage.get(Storage.KEYS.trainers).filter(t=>t.id!==id);
+      Storage.set(Storage.KEYS.trainers, trainers);
+      this.render(); Dashboard.render();
+      Toast.show('Trainer deleted.','info');
+    });
+  },
+  exportCSV() {
+    const data = Storage.get(Storage.KEYS.trainers);
+    const headers = ['Name','Email','Phone','Department','Expertise','Mode','Availability','Status'];
+    const rows = data.map(t => [t.name,t.email,t.phone,t.dept,t.expertise,t.mode,t.avail,t.status]);
+    Utils.downloadCSV('trainers.csv',[headers,...rows]);
+    Toast.show('Trainers exported to CSV.');
+  }
+};
+
+// ═══════════════════════════════════════════════════
+//  LEARNERS MODULE
+// ═══════════════════════════════════════════════════
+const Learners = {
+  modal: null,
+  init() {
+    this.modal = new bootstrap.Modal(document.getElementById('learnerModal'));
+    document.getElementById('btn-add-learner').addEventListener('click', () => this.openAdd());
+    document.getElementById('btn-save-learner').addEventListener('click', () => this.save());
+    document.getElementById('learner-search').addEventListener('input', () => this.render());
+    document.getElementById('learner-filter-dept').addEventListener('change', () => this.render());
+    document.getElementById('learner-filter-status').addEventListener('change', () => this.render());
+    document.getElementById('btn-export-learners').addEventListener('click', () => this.exportCSV());
+    this.render();
+  },
+  getFiltered() {
+    let data = Storage.get(Storage.KEYS.learners);
+    const q    = document.getElementById('learner-search').value.trim().toLowerCase();
+    const dept = document.getElementById('learner-filter-dept').value;
+    const stat = document.getElementById('learner-filter-status').value;
+    if (q)    data = data.filter(l => l.name.toLowerCase().includes(q) || (l.empid||'').toLowerCase().includes(q) || (l.email||'').toLowerCase().includes(q) || (l.course||'').toLowerCase().includes(q));
+    if (dept) data = data.filter(l => l.dept === dept);
+    if (stat) data = data.filter(l => l.status === stat);
+    return data;
+  },
+  populateDeptFilter() {
+    const learners = Storage.get(Storage.KEYS.learners);
+    const depts = [...new Set(learners.map(l=>l.dept).filter(Boolean))].sort();
+    const sel = document.getElementById('learner-filter-dept');
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">All Departments</option>` + depts.map(d=>`<option${d===cur?' selected':''}>${d}</option>`).join('');
+  },
+  populateCourseSelect(selected) {
+    const courses = Storage.get(Storage.KEYS.courses);
+    const sel = document.getElementById('l-course');
+    sel.innerHTML = `<option value="">Select…</option>` + courses.map(c=>`<option${c.name===selected?' selected':''}>${Utils.escHtml(c.name)}</option>`).join('');
+  },
+  render() {
+    this.populateDeptFilter();
+    const data = this.getFiltered();
+    const tbody = document.getElementById('learners-tbody');
+    document.getElementById('learners-count').textContent = `Showing ${data.length} learner${data.length!==1?'s':''}`;
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" class="empty-state"><i class="bi bi-people"></i>No learners found</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((l,i) => {
+      const pct = Math.min(100, parseInt(l.progress)||0);
+      const col = pct>=100?'bg-success':pct>=50?'bg-primary':'bg-warning';
+      return `<tr>
+        <td>${i+1}</td>
+        <td>${Utils.avatar(l.name)}${Utils.escHtml(l.name)}</td>
+        <td>${Utils.escHtml(l.empid||'—')}</td>
+        <td>${Utils.escHtml(l.dept||'—')}</td>
+        <td>${Utils.escHtml(l.email||'—')}</td>
+        <td>${Utils.escHtml(l.course||'—')}</td>
+        <td>
+          <div class="prog-wrap">
+            <div class="progress"><div class="progress-bar ${col}" style="width:${pct}%"></div></div>
+            <span>${pct}%</span>
+          </div>
+        </td>
+        <td>${Utils.statusBadge(l.status)}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="Learners.openEdit('${l.id}')"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="Learners.delete('${l.id}','${Utils.escHtml(l.name)}')"><i class="bi bi-trash"></i></button>
+        </td>
+      </tr>`;
+    }).join('');
+  },
+  openAdd() {
+    document.getElementById('learnerModalTitle').textContent = 'Add Learner';
+    document.getElementById('learner-form').reset();
+    document.getElementById('learner-id').value = '';
+    document.querySelectorAll('#learner-form .is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+    this.populateCourseSelect('');
+    this.modal.show();
+  },
+  openEdit(id) {
+    const l = Storage.get(Storage.KEYS.learners).find(x=>x.id===id);
+    if (!l) return;
+    document.getElementById('learnerModalTitle').textContent = 'Edit Learner';
+    document.getElementById('learner-id').value   = l.id;
+    document.getElementById('l-name').value       = l.name;
+    document.getElementById('l-empid').value      = l.empid||'';
+    document.getElementById('l-email').value      = l.email||'';
+    document.getElementById('l-dept').value       = l.dept||'';
+    document.getElementById('l-progress').value   = l.progress||0;
+    document.getElementById('l-status').value     = l.status||'Active';
+    document.querySelectorAll('#learner-form .is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+    this.populateCourseSelect(l.course||'');
+    this.modal.show();
+  },
+  validate() {
+    let ok = true;
+    ['l-name','l-empid','l-email'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('is-invalid');
+      if (!el.value.trim()) { el.classList.add('is-invalid'); ok = false; }
+    });
+    return ok;
+  },
+  save() {
+    if (!this.validate()) { Toast.show('Please fill in all required fields.','error'); return; }
+    const id = document.getElementById('learner-id').value;
+    const record = {
+      id:       id || Utils.uid(),
+      name:     document.getElementById('l-name').value.trim(),
+      empid:    document.getElementById('l-empid').value.trim(),
+      email:    document.getElementById('l-email').value.trim(),
+      dept:     document.getElementById('l-dept').value.trim(),
+      course:   document.getElementById('l-course').value,
+      progress: parseInt(document.getElementById('l-progress').value)||0,
+      status:   document.getElementById('l-status').value,
+    };
+    const learners = Storage.get(Storage.KEYS.learners);
+    if (id) {
+      const idx = learners.findIndex(l=>l.id===id);
+      learners[idx] = record;
+      Toast.show('Learner updated successfully.');
+    } else {
+      learners.push(record);
+      Toast.show('Learner added successfully.');
+    }
+    Storage.set(Storage.KEYS.learners, learners);
+    this.modal.hide();
+    this.render();
+    Dashboard.render();
+  },
+  delete(id, name) {
+    confirmDelete(`Delete learner "${name}"?`, () => {
+      const learners = Storage.get(Storage.KEYS.learners).filter(l=>l.id!==id);
+      Storage.set(Storage.KEYS.learners, learners);
+      this.render(); Dashboard.render();
+      Toast.show('Learner deleted.','info');
+    });
+  },
+  exportCSV() {
+    const data = Storage.get(Storage.KEYS.learners);
+    const headers = ['Name','Employee ID','Email','Department','Assigned Course','Progress (%)','Status'];
+    const rows = data.map(l=>[l.name,l.empid,l.email,l.dept,l.course,l.progress,l.status]);
+    Utils.downloadCSV('learners.csv',[headers,...rows]);
+    Toast.show('Learners exported to CSV.');
+  }
+};
+
+// ═══════════════════════════════════════════════════
+//  SESSIONS MODULE
+// ═══════════════════════════════════════════════════
+const Sessions = {
+  modal: null,
+  init() {
+    this.modal = new bootstrap.Modal(document.getElementById('sessionModal'));
+    document.getElementById('btn-add-session').addEventListener('click', () => this.openAdd());
+    document.getElementById('btn-save-session').addEventListener('click', () => this.save());
+    document.getElementById('session-search').addEventListener('input', () => this.render());
+    document.getElementById('session-filter-mode').addEventListener('change', () => this.render());
+    document.getElementById('session-filter-status').addEventListener('change', () => this.render());
+    document.getElementById('btn-export-schedule').addEventListener('click', () => this.exportCSV());
+    this.render();
+  },
+  populateSelects() {
+    const courses  = Storage.get(Storage.KEYS.courses);
+    const trainers = Storage.get(Storage.KEYS.trainers);
+    ['s-course'].forEach(id => {
+      const sel = document.getElementById(id);
+      const cur = sel.value;
+      sel.innerHTML = `<option value="">Select…</option>` + courses.map(c=>`<option${c.name===cur?' selected':''}>${Utils.escHtml(c.name)}</option>`).join('');
+    });
+    const tsel = document.getElementById('s-trainer');
+    const tcur = tsel.value;
+    tsel.innerHTML = `<option value="">Select…</option>` + trainers.map(t=>`<option${t.name===tcur?' selected':''}>${Utils.escHtml(t.name)}</option>`).join('');
+  },
+  getFiltered() {
+    let data = Storage.get(Storage.KEYS.sessions);
+    const q    = document.getElementById('session-search').value.trim().toLowerCase();
+    const mode = document.getElementById('session-filter-mode').value;
+    const stat = document.getElementById('session-filter-status').value;
+    if (q)    data = data.filter(s => s.course.toLowerCase().includes(q) || (s.trainer||'').toLowerCase().includes(q) || (s.location||'').toLowerCase().includes(q));
+    if (mode) data = data.filter(s => s.mode === mode);
+    if (stat) data = data.filter(s => s.status === stat);
+    data.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    return data;
+  },
+  render() {
+    const data = this.getFiltered();
+    const tbody = document.getElementById('sessions-tbody');
+    document.getElementById('sessions-count').textContent = `Showing ${data.length} session${data.length!==1?'s':''}`;
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10" class="empty-state"><i class="bi bi-calendar3"></i>No sessions found</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((s,i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td class="fw-semibold">${Utils.escHtml(s.course)}</td>
+        <td>${Utils.escHtml(s.trainer||'—')}</td>
+        <td>${Utils.fmtDate(s.date)}</td>
+        <td>${Utils.escHtml(s.time||'—')}</td>
+        <td>${Utils.escHtml(s.location||'—')}</td>
+        <td>${Utils.modeBadge(s.mode)}</td>
+        <td>${s.seats||'—'}</td>
+        <td>${Utils.statusBadge(s.status)}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="Sessions.openEdit('${s.id}')"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="Sessions.delete('${s.id}','${Utils.escHtml(s.course)}')"><i class="bi bi-trash"></i></button>
+        </td>
+      </tr>`).join('');
+  },
+  openAdd() {
+    document.getElementById('sessionModalTitle').textContent = 'New Session';
+    document.getElementById('session-form').reset();
+    document.getElementById('session-id').value = '';
+    document.querySelectorAll('#session-form .is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+    this.populateSelects();
+    this.modal.show();
+  },
+  openEdit(id) {
+    const s = Storage.get(Storage.KEYS.sessions).find(x=>x.id===id);
+    if (!s) return;
+    document.getElementById('sessionModalTitle').textContent = 'Edit Session';
+    document.getElementById('session-id').value   = s.id;
+    document.getElementById('s-date').value       = s.date||'';
+    document.getElementById('s-time').value       = s.time||'';
+    document.getElementById('s-location').value   = s.location||'';
+    document.getElementById('s-mode').value       = s.mode||'ILT';
+    document.getElementById('s-seats').value      = s.seats||20;
+    document.getElementById('s-status').value     = s.status||'Open';
+    document.querySelectorAll('#session-form .is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+    this.populateSelects();
+    document.getElementById('s-course').value  = s.course||'';
+    document.getElementById('s-trainer').value = s.trainer||'';
+    this.modal.show();
+  },
+  validate() {
+    let ok = true;
+    ['s-course','s-trainer','s-date'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.remove('is-invalid');
+      if (!el.value.trim()) { el.classList.add('is-invalid'); ok = false; }
+    });
+    return ok;
+  },
+  save() {
+    if (!this.validate()) { Toast.show('Please fill in all required fields.','error'); return; }
+    const id = document.getElementById('session-id').value;
+    const record = {
+      id:       id || Utils.uid(),
+      course:   document.getElementById('s-course').value,
+      trainer:  document.getElementById('s-trainer').value,
+      date:     document.getElementById('s-date').value,
+      time:     document.getElementById('s-time').value.trim(),
+      location: document.getElementById('s-location').value.trim(),
+      mode:     document.getElementById('s-mode').value,
+      seats:    parseInt(document.getElementById('s-seats').value)||20,
+      status:   document.getElementById('s-status').value,
+    };
+    const sessions = Storage.get(Storage.KEYS.sessions);
+    if (id) {
+      const idx = sessions.findIndex(s=>s.id===id);
+      sessions[idx] = record;
+      Toast.show('Session updated successfully.');
+    } else {
+      sessions.push(record);
+      Toast.show('Session added successfully.');
+    }
+    Storage.set(Storage.KEYS.sessions, sessions);
+    this.modal.hide();
+    this.render();
+    Dashboard.render();
+  },
+  delete(id, course) {
+    confirmDelete(`Delete session for "${course}"?`, () => {
+      const sessions = Storage.get(Storage.KEYS.sessions).filter(s=>s.id!==id);
+      Storage.set(Storage.KEYS.sessions, sessions);
+      this.render(); Dashboard.render();
+      Toast.show('Session deleted.','info');
+    });
+  },
+  exportCSV() {
+    const data = Storage.get(Storage.KEYS.sessions);
+    const headers = ['Course','Trainer','Date','Time','Location','Mode','Seats','Status'];
+    const rows = data.map(s=>[s.course,s.trainer,s.date,s.time,s.location,s.mode,s.seats,s.status]);
+    Utils.downloadCSV('schedule.csv',[headers,...rows]);
+    Toast.show('Schedule exported to CSV.');
+  }
+};
+
+// ═══════════════════════════════════════════════════
+//  GLOBAL SEARCH
+// ═══════════════════════════════════════════════════
+const GlobalSearch = {
+  init() {
+    const input = document.getElementById('global-search-input');
+    const box   = document.getElementById('global-search-results');
+    input.addEventListener('input', () => {
+      const q = input.value.trim().toLowerCase();
+      if (q.length < 2) { box.style.display='none'; return; }
+      const results = [];
+      Storage.get(Storage.KEYS.courses).forEach(c => {
+        if (c.name.toLowerCase().includes(q)||c.category.toLowerCase().includes(q)) results.push({type:'Course',label:c.name,sub:c.category,page:'courses'});
+      });
+      Storage.get(Storage.KEYS.trainers).forEach(t => {
+        if (t.name.toLowerCase().includes(q)||(t.expertise||'').toLowerCase().includes(q)) results.push({type:'Trainer',label:t.name,sub:t.expertise,page:'trainers'});
+      });
+      Storage.get(Storage.KEYS.learners).forEach(l => {
+        if (l.name.toLowerCase().includes(q)||(l.empid||'').toLowerCase().includes(q)) results.push({type:'Learner',label:l.name,sub:l.dept,page:'learners'});
+      });
+      Storage.get(Storage.KEYS.sessions).forEach(s => {
+        if (s.course.toLowerCase().includes(q)||(s.trainer||'').toLowerCase().includes(q)) results.push({type:'Session',label:s.course,sub:Utils.fmtDate(s.date),page:'schedule'});
+      });
+      if (results.length === 0) {
+        box.innerHTML = `<div class="gs-item text-muted">No results found</div>`;
+      } else {
+        box.innerHTML = results.slice(0,10).map(r =>
+          `<div class="gs-item" data-page="${r.page}">
+            <span class="gs-badge">${r.type}</span>
+            <div><div class="fw-semibold">${Utils.escHtml(r.label)}</div><div class="text-muted" style="font-size:.75rem">${Utils.escHtml(r.sub||'')}</div></div>
+          </div>`).join('');
+        box.querySelectorAll('.gs-item[data-page]').forEach(el => {
+          el.addEventListener('click', () => {
+            navigateTo(el.dataset.page);
+            box.style.display='none';
+            input.value='';
+          });
+        });
+      }
+      box.style.display='block';
+    });
+    document.addEventListener('click', e => { if (!e.target.closest('.gs-wrap')) box.style.display='none'; });
+  }
+};
+
+// ═══════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════
+function navigateTo(page) {
+  document.querySelectorAll('.sidebar .nav-link').forEach(l=>l.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const link = document.querySelector(`.sidebar .nav-link[data-page="${page}"]`);
+  if (link) link.classList.add('active');
+  const pg = document.getElementById('page-'+page);
+  if (pg) pg.classList.add('active');
+  if (page==='dashboard') Dashboard.render();
+}
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+  seedData();
+
+  Courses.init();
+  Trainers.init();
+  Learners.init();
+  Sessions.init();
+  GlobalSearch.init();
+  Dashboard.render();
+
+  // Sidebar navigation
+  document.querySelectorAll('.sidebar .nav-link[data-page]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      navigateTo(link.dataset.page);
+    });
+  });
+
+  // Mobile menu toggle
+  const menuBtn = document.getElementById('menu-toggle');
+  if (menuBtn) {
+    menuBtn.addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+    });
+  }
+});
+</script>
+</body>
+</html>
